@@ -1,5 +1,6 @@
-function waterLine = DetectWaterLine(image,detectMatBBeads,radBBeads,...
-    threshStdWl)
+function waterLine = DetectWaterLine(image, threshStdWl, detectMatBBeads,...
+    radBBeads)
+   
 % Detect the water line in an image using watershed transform.
 % The algorithm deals with the problem of black beads touching the water line
 % by removing the pre-computed detected black beads.
@@ -22,8 +23,20 @@ function waterLine = DetectWaterLine(image,detectMatBBeads,radBBeads,...
 % <https://github.com/hugolafaye/BeadTracking> and it is licensed under the
 % BSD-style license found in the LICENSE file in the root directory of this
 % source tree.
+%
+% EDIT 03/22 by B.Dedieu : it is now possible to call the function with only 
+% 1 or 2 parameters: DetectWaterLine(image) or DetectWaterLine(image,threshStdWl)
+% This is for simple detection without taking blackbeads into account. In
+% the first case, threshStdWl is set to 0.35 by default.
 
 %default variables
+if nargin<=2
+    detectMatBBeads=[];
+    radBBeads=20; 
+end
+if nargin==1
+    threshStdWl=0.35;
+end
 threshBlack=50;
 threshJumpOk=15;
 

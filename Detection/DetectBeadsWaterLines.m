@@ -36,15 +36,16 @@ function [detectMat,waterLine,detectMatTransBeadsConf,imageTransform,maskBpx] = 
 % source tree.
 
 %initialize variables
+imSize=size(image);
 image2=image;
 waterLine=[];
 detectMatBlackBeads=[];
 detectMatTransBeads=[];
 detectMatTransBeadsConf=[];
-maskBb1=zeros(dp.imSize);
-maskWl=zeros(dp.imSize);
-maskBpx=zeros(dp.imSize);
-imageTransform=zeros(dp.imSize);
+maskBb1=zeros(imSize);
+maskWl=zeros(imSize);
+maskBpx=zeros(imSize);
+imageTransform=zeros(imSize);
 
 %remove the base of the flume
 if dp.boolRemoveBase
@@ -59,8 +60,8 @@ end
 
 %detect and remove the water line with the help of the black bead detections
 if dp.boolWaterLineDetect
-    waterLine=DetectWaterLine(image2,detectMatBlackBeads,dp.radBlackBeadPx,...
-        dp.threshWaterLineStd);
+    waterLine=DetectWaterLine(image2,dp.threshWaterLineStd,...
+        detectMatBlackBeads,dp.radBlackBeadPx);
     [image2,maskWl]=RemoveWaterLine(image2,waterLine);
 end
 
@@ -68,7 +69,7 @@ end
 %and then change true black bead detections into closing
 if dp.boolBlackBeadDetect
     detectMatBlackBeads=RemoveDetectionsAboveUnderLine(detectMatBlackBeads,...
-        waterLine,dp.imSize,'above');
+        waterLine,imSize,'above');
     if dp.boolTransBeadDetect
         [image2,maskBb1]=RemoveBlackBeadsFromDetectMat(image2,...
             detectMatBlackBeads,dp.radBlackBeadPx);
@@ -95,12 +96,12 @@ if dp.boolTransBeadDetect
     %remove false transparent bead detections using the water line
     %and the pixel intensities
     detectMatTransBeads=RemoveDetectionsAboveUnderLine(detectMatTransBeads,...
-        waterLine,dp.imSize,'above');
+        waterLine,imSize,'above');
     detectMatTransBeads=RemoveTransBeadDetectionsOnBlackPixels(image,...
         detectMatTransBeads,2*dp.threshBlackBeadDetect);
     if dp.boolTransBeadDetectConf
         detectMatTransBeadsConf=RemoveDetectionsAboveUnderLine(...
-            detectMatTransBeadsConf,waterLine,dp.imSize,'above');
+            detectMatTransBeadsConf,waterLine,imSize,'above');
         detectMatTransBeadsConf=RemoveTransBeadDetectionsOnBlackPixels(image,...
             detectMatTransBeadsConf,2*dp.threshBlackBeadDetect);
     end
