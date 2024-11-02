@@ -1,3 +1,51 @@
+This is a fork of the original BeadTracking MATLAB package 
+(https://github.com/hugolafaye/BeadTracking), specifically adapted for the 
+purpose of my PHD thesis.
+
+This fork introduces the following changes compared to the original package :
+    - New, simplified RunDetection, without GUI, supporting bed/waterline 
+      detection and data storage to hdf5.
+    - Added ROI management in detection,
+    - Added files for bed/water line detection in the Detection folder :
+      ComputeLinesDetection.m, DetectBedLine.m and ExtractBackground.m
+    - Adapted files for compatibility with the previous changes: 
+      LoadDetectionSettableParameters.m, SetDetectionParameters.m, DetectBeadsWaterLines.m, 
+      ComputeDetection.m, DetectWaterLine.m,
+Only Detection part was modified, not Tracking.
+Detailed changes to original files are documented in the headers of the affected 
+files.
+
+These enhancements were developed to ensure smooth compatibility with the python 
+package IntruLab (https://gitlab.com/majneb/intrulab) for processing a large 
+experimental dataset of images featuring intruders segregating in a bedload transport 
+configuration. In this setup, processing parameters were predefined in Python, 
+and the MATLAB BeadTracking detection was triggered automatically from the IntruLab 
+package. Since only CLI functionality was needed, the GUI has not been adapted to 
+accommodate the new detection features. As a result, detectionGUI.m is not expected 
+to work in this version.
+
+Note 1 : The initial commit of this fork integrates minor improvements and bug 
+fixes from an updated version developed by the original authors, currently in use
+at the laboratory but not included in the GitHub release (v2). This commit is 
+credited entirely to the original authors of the BeadTracking package.
+
+Note 2 : The new bedline detection files (ComputeLinesDetection.m, DetectBedLine.m, 
+and ExtractBackground.m) are based on scripts from an updated version developed 
+by the original authors, currently in use at the laboratory but not included in 
+the GitHub release (v2). Original credit goes to the authors of the BeadTracking 
+package. The ComputeLinesDetection.m file has been adapted to maintain consistency
+with ComputeDetection.m, enable parallel computing, and add functionality for 
+setting a starting frame, step, and ROI.
+
+Note 3 : acqFreq was rename fps to be consistent with other scripts. In fact it 
+is not necessarily the camera frame rate, but the frame rate of the sequence
+image folder which is processed.
+
+
+BELOW IS NON UPDATED DESCRIPTION OF VERSION2 
+--------------------------------------------------------------------------------
+
+
 ==========================================================================
  BeadTracking MATLAB package (https://github.com/hugolafaye/BeadTracking)
 ==========================================================================
