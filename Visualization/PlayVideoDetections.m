@@ -81,7 +81,9 @@ c=onCleanup(@()CleanupAndPlay(videoObj,videoFullFile));
 t=now;
 ParforProgress(t,length(imageFullFiles));
 for im=1:length(imageFullFiles)
-    PlotDetectMat(imread(imageFullFiles{im}),detectData{im},hf);
+    image=imread(imageFullFiles{im});
+    if size(image,3)>1, image=rgb2gray(image); end
+    PlotDetectMat(image,detectData{im},hf);
     hold on;
     if ~isempty(waterData), plot(waterData{im},'c'); end
 	if exist('hardcopy','builtin'), image=hardcopy(gca,'-dzbuffer','-r0');

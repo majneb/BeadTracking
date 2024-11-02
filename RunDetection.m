@@ -1,4 +1,4 @@
-function RunDetection(dspIn,boolGui,boolAssign)
+ function RunDetection(pathData,dspIn,boolGui,boolAssign)
 % Main function to detect black and transparent beads and water lines in a  
 % sequence of images.
 %
@@ -56,7 +56,8 @@ fprintf('-----------------------------------------------------------\n');
 
 %set path to package (add it to matlab path) and path to data
 pathPackage=fileparts(mfilename('fullpath'));%addpath(genpath(pathPackage));
-pathData=fullfile(pathPackage,'Data');
+if nargin<1, pathData=fullfile(pathPackage,'Data');end
+%pathData=fullfile(pathPackage,'Data');
 if ~exist(pathData,'dir')
     warning(['Execution continue: Inexistent or uncorrect folder of the ',...
             'data, please select a valid one. For futur use, set pathData ',...
@@ -65,22 +66,22 @@ if ~exist(pathData,'dir')
 end
 
 %set default parameters
-folderImages                  = 'BaumerBimAmont20'; %folder of images
+folderImages                  = ''; %folder of images
 folderResults                 = 'Results'; %folder where to store the results
 seqParamFile                  = 'sequence_param.txt'; %sequence parameters file
 baseMaskFile                  = 'sequence_base_mask.tif'; %base mask file
 templateTransBeadFile         = 'template_transparent_bead_rOut10_rIn6.mat'; %template file
 detectDataFilePrefix          = 'detectdata'; %prefix of the output file
 detectSettableParamFileSuffix = 'settable_param'; %suffix of the parameter file
-boolRemoveBase                = true; %boolean for removing the base of the flume
+boolRemoveBase                = false; %boolean for removing the base of the flume
 boolBlackBeadDetect           = true; %boolean for detecting black beads
-boolTransBeadDetect           = true; %boolean for detecting transparent beads
-boolTransBeadDetectConf       = true; %boolean for computing detector confidence of trans beads
+boolTransBeadDetect           = false; %boolean for detecting transparent beads
+boolTransBeadDetectConf       = false; %boolean for computing detector confidence of trans beads
 boolWaterLineDetect           = true; %boolean for detecting water lines
 boolComputeParallel           = false; %boolean for using parallel computing
 boolVisualizeDetections       = true; %boolean for visualizing detections
-threshBlackBeadDetect         = -1; %[0,255] if negative, is set automatically from histogram
-threshTransBeadDetect         = 0.23; %[0,1] if negative, is set to 0.25
+threshBlackBeadDetect         = 30; %[0,255] if negative, is set automatically from histogram
+threshTransBeadDetect         = 0.25; %[0,1] if negative, is set to 0.25
 threshTransBeadDetectConf     = 0.20; %[0,1] if negative, is set to 0.20
 threshWaterLineStd            = 0.25; %[0,1] if negative, is set to 0.25
 transBeadDetectHMax           = 44; %[0,255] in TB detect: value of the heigh hMax
@@ -94,9 +95,9 @@ transBeadDetectNbFilt         = 2; %[1,+Inf] in TB detect: nb of iterations of t
 %-------------------------------------------------------------------------------
 
 %set default settings according to inputs
-if nargin<3, boolAssign=true; end
-if nargin<2, boolGui=true; end
-if nargin<1, dspIn=0; end
+if nargin<4, boolAssign=true; end
+if nargin<3, boolGui=true; end
+if nargin<2, dspIn=0; end
 boolOverwrite=false;
 
 %set the DSP according to inputs

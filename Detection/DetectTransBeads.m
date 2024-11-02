@@ -1,5 +1,6 @@
-function [detectMat,detectMatConf] = DetectTransBeads(image,radBBeads,hMax,...
-    templateTBead,radFilt,nbFilt,threshTBeadDetect,threshTBeadDetectConf)
+function [detectMat,detectMatConf,imageHConcaveNorm] = DetectTransBeads(image,...
+    radBBeads,hMax,templateTBead,radFilt,nbFilt,threshTBeadDetect,...
+    threshTBeadDetectConf,maskNoImpact)
 % Detect the transparent beads in an image using template matching. Compute the
 % detector confidence of transparent beads if needed.
 %
@@ -38,9 +39,18 @@ imageTopHat=imclose(image,strel('disk',floor(3/2*radBBeads),8))-image;
 
 %H-Concave transform: high peak detection
 imageHConcave=imhmin(imageTopHat,hMax)-imageTopHat;
+imageHConcaveNorm=imageHConcave;
+
+%remove impact of black pixels if their mask is given, and normalize and center
+if nargin==9 && sum(maskNoImpact(:))>0
+    imageHConcaveNorm=double(imageHConcave)/hMax;
+    imageHConcaveNorm(maskNoImpact)=0;
+    imageHConcaveNorm(~maskNoImpact)=imageHConcaveNorm(~maskNoImpact)-...
+        mean2(imageHConcaveNorm(~maskNoImpact));
+end
 
 %correlate transparent bead template in the image
-imageCorr=FindTemplate(imageHConcave,templateTBead,radFilt,nbFilt);
+imageCorr=FindTemplate(imageHConcaveNorm,templateTBead,radFilt,nbFilt);
 
 %keep only detections above the threshold
 imageDiskMax=imageCorr.*imregionalmax(imageCorr,8);
@@ -48,7 +58,7 @@ imageDiskMax=imageCorr.*imregionalmax(imageCorr,8);
 detectMat=single([posX,posY]);
 
 %compute detector confidence of transparent beads if needed
-if nargin==8 && ~isempty(threshTBeadDetectConf)
+if nargin>=8 && ~isempty(threshTBeadDetectConf)
     [posYConf,posXConf]=find(imageDiskMax>=threshTBeadDetectConf);
     detectMatConf=single([posXConf,posYConf,...
         imageDiskMax(sub2ind(size(image),posYConf,posXConf))]);

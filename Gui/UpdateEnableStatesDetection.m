@@ -66,20 +66,14 @@ elseif seqDirIdx==Field2Idx(s.bool.fieldNames.BOOL_TRANS,...
         s.bool.fieldNames.BOOL_TRANS_CONF));
     if isChecked
         set(obj,'Enable','on');
-        set(h_trans_conf, 'Enable', 'on')
-        if get(h_trans_conf, 'Value')
-            set(h_trans_conf, 'Value', 0)
-            UpdateEnableStatesDetection(h_trans_conf, [], f)
-        end
     else
         set(obj,'Enable','off');
-        set(h_trans_conf, 'Enable', 'off')
-        if get(h_trans_conf, 'Value')
-            set(h_trans_conf, 'Value', 0)
-            UpdateEnableStatesDetection(h_trans_conf, [], f)
+        set(h_trans_conf,'Enable','off');
+        if get(h_trans_conf,'Value')
+            set(h_trans_conf,'Value',0);
+            UpdateEnableStatesDetection(h_trans_conf,[],f);
         end
     end
-    
     
 % compute detector confidence of transparent beads
 elseif seqDirIdx==Field2Idx(s.bool.fieldNames.BOOL_TRANS_CONF,...

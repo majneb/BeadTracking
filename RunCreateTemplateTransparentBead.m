@@ -18,8 +18,8 @@ function RunCreateTemplateTransparentBead(radTransBeadPx,...
 % BSD-style license found in the LICENSE file in the root directory of this
 % source tree.
 
-%radTransBeadPx=11;
-%radTransBeadPxInside=8;
+radTransBeadPx=24;
+radTransBeadPxInside=20;
 
 %create template
 templateSize=2*radTransBeadPx+1;

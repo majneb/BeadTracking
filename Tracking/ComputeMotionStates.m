@@ -67,12 +67,19 @@ if boolComputeParallel && find(ismember({v.Name},'Parallel Computing Toolbox'))
     nbW=p.NumWorkers;
     if isempty(gcp('nocreate')) && nbW~=0, parpool(nbW); end
 end
-fprintf('Step #1: local state computation\n');
+fprintf('Step #1: local motion state computation\n');
 t=now;
 ParforProgress(t,tp.nbImages);
+%for im=1:tp.nbImages
 parfor(im=1:tp.nbImages,nbW)
     nbBeads=size(trackData{im},1);
     for b=1:nbBeads
+        %don't set motion state if target has been removed (ie. set to NaN)
+        if isnan(trackData{im}(b,4))
+            trackDataOut{im}(b,9)=3;
+            continue;
+        end
+        
         %----------------------------------------------------------------------%
         %set motion state to rest using absolute speed calculted on window
         %----------------------------------------------------------------------%
@@ -123,7 +130,7 @@ parfor(im=1:tp.nbImages,nbW)
                     trackData{im}(b,1)-trackData{im}(:,1),...
                     trackData{im}(b,2)-trackData{im}(:,2))./dNeigh);
             end
-        end     
+        end
     end
     
     ParforProgress(t,0,im);

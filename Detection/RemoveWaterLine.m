@@ -1,4 +1,4 @@
-function imageNoWaterLine = RemoveWaterLine(image,waterLine)
+function [imageNoWaterLine,maskWaterLine] = RemoveWaterLine(image,waterLine)
 % Detect and remove the water line in an image.
 %
 % INPUT ARGUMENTS:
@@ -23,15 +23,17 @@ function imageNoWaterLine = RemoveWaterLine(image,waterLine)
 %by deducting the water thickness as being twice the water line minus the top 
 %water line
 maskMarkers=zeros(nrow,ncol,'uint8');
-maskMarkers(1,:)=1;
 waterLineTemp=waterLine;
 waterLineTemp(waterLine<=2)=3;%to deal with water line touching top of image
 maskMarkers(sub2ind([nrow,ncol],waterLineTemp,1:ncol))=1;
+maskMarkers=filledgegaps(maskMarkers,10);%to fill vertical gaps
+maskMarkers(1,:)=1;
 waterLineTop=watershed(imimposemin(imgradient(image),maskMarkers))==0;
 waterLineTop=bwmorph(waterLineTop,'thin',Inf);
 [row,col]=find(waterLineTop);
 [~,icol,~]=unique(col,'stable');
 waterLineTop=uint16(row(icol)');
+waterLineTop(length(waterLineTop)+1:length(waterLine))=waterLineTop(end);%HLM modif
 waterThickness=2*ceil(mean(waterLine-waterLineTop));
 
 %create a mask with only the water line on its whole thickness

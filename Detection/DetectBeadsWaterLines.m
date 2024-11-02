@@ -1,12 +1,12 @@
-function [detectMat,waterLine,detectMatTransBeadsConf] = ...
-    DetectBeadsWaterLines(image,dp,baseMask,templateTransBead)
+function [detectMat,waterLine,detectMatTransBeadsConf,imageTransform,maskBpx] = ...
+    DetectBeadsWaterLines(image,dp,maskBase,templateTransBead)
 % Detect the black and transparent beads and the water line in an image. Compute
 % the detector confidence of transparent beads if needed.
 %
 % INPUT ARGUMENTS:
 %  image   : source image.
 %  dp      : structure containing the detection parameters.
-%  baseMask: mask of the base of the flume.
+%  maskBase: mask of the base of the flume.
 %
 % OUTPUT ARGUMENTS:
 %  detectMat              : matrix of black and transparent bead detections with
@@ -41,10 +41,14 @@ waterLine=[];
 detectMatBlackBeads=[];
 detectMatTransBeads=[];
 detectMatTransBeadsConf=[];
+maskBb1=zeros(dp.imSize);
+maskWl=zeros(dp.imSize);
+maskBpx=zeros(dp.imSize);
+imageTransform=zeros(dp.imSize);
 
 %remove the base of the flume
 if dp.boolRemoveBase
-    image2=RemoveBaseFromMask(image,baseMask,2*dp.radBlackBeadPx);
+    image2=RemoveBaseFromMask(image,maskBase,2*dp.radBlackBeadPx);
 end
 
 %detect black beads
@@ -57,7 +61,7 @@ end
 if dp.boolWaterLineDetect
     waterLine=DetectWaterLine(image2,detectMatBlackBeads,dp.radBlackBeadPx,...
         dp.threshWaterLineStd);
-    image2=RemoveWaterLine(image2,waterLine);
+    [image2,maskWl]=RemoveWaterLine(image2,waterLine);
 end
 
 %remove false black bead detections using the water line
@@ -66,8 +70,8 @@ if dp.boolBlackBeadDetect
     detectMatBlackBeads=RemoveDetectionsAboveUnderLine(detectMatBlackBeads,...
         waterLine,dp.imSize,'above');
     if dp.boolTransBeadDetect
-        image2=RemoveBlackBeadsFromDetectMat(image2,detectMatBlackBeads,...
-            dp.radBlackBeadPx);
+        [image2,maskBb1]=RemoveBlackBeadsFromDetectMat(image2,...
+            detectMatBlackBeads,dp.radBlackBeadPx);
     end
 end
 
@@ -75,13 +79,18 @@ end
 if dp.boolTransBeadDetect
     %remove residual black disks (ie. the cropped ones or all of them if black
     %beads not detected)
-    image2=RemoveBlackDisks(image2,dp.threshBlackBeadDetect,dp.radBlackBeadPx);
+    [image2,maskBb2]=RemoveBlackDisks(image2,dp.threshBlackBeadDetect,...
+        dp.radBlackBeadPx);
 
+    %prepare mask of black pixels that should not influence correlations for 
+    %transparent beads detection if needed
+    maskBpx=maskBase|maskBb1|maskBb2|maskWl;
+    
     %detect transparent beads and compute detector confidence if needed
-    [detectMatTransBeads,detectMatTransBeadsConf]=DetectTransBeads(image2,...
-        dp.radBlackBeadPx,dp.transBeadDetectHMax,templateTransBead,...
-        dp.transBeadDetectRadFilt,dp.transBeadDetectNbFilt,...
-        dp.threshTransBeadDetect,dp.threshTransBeadDetectConf);
+    [detectMatTransBeads,detectMatTransBeadsConf,imageTransform]=...
+        DetectTransBeads(image2,dp.radBlackBeadPx,dp.transBeadDetectHMax,...
+        templateTransBead,dp.transBeadDetectRadFilt,dp.transBeadDetectNbFilt,...
+        dp.threshTransBeadDetect,dp.threshTransBeadDetectConf,maskBpx);
 
     %remove false transparent bead detections using the water line
     %and the pixel intensities

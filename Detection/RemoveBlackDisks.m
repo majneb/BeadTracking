@@ -1,4 +1,4 @@
-function imageNoBDisks = RemoveBlackDisks(image,threshBDisks,radBDisks)
+function [imageNoBDisks,maskBDisks] = RemoveBlackDisks(image,threshBDisks,radBDisks)
 % Remove black disks from the image by changing them into closing.
 %
 % INPUT ARGUMENTS:

@@ -39,7 +39,7 @@ function [detectData,waterData,detectConfData] = ComputeDetection(...
 % source tree.
 
 %load base mask if needed
-baseMask=[];
+baseMask=zeros(dp.imSize);
 if dp.boolRemoveBase
     baseMask=imread(fullfile(dp.pathImages,dp.baseMaskFile));
 end
@@ -67,9 +67,10 @@ end
 t=now;
 ParforProgress(t,dp.nbImages);
 parfor(im=1:dp.nbImages,nbW)
+    image=imread(imageFullFiles{im});
+    if size(image,3)>1, image=rgb2gray(image); end
     [detectData{im},waterData{im},detectConfData{im}]=...
-        DetectBeadsWaterLines(imread(imageFullFiles{im}),dp,baseMask,...
-            templateTransBead);
+        DetectBeadsWaterLines(image,dp,baseMask,templateTransBead);
     ParforProgress(t,0,im);
 end
 ParforProgress(t,0);

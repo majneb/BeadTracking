@@ -1,4 +1,5 @@
-function RunEvaluation(trackTruthFullFile,trackDataFullFiles,trackDataNames)
+function RunEvaluation(trackTruthFullFile,trackDataFullFiles,trackDataNames,...
+    flagType)
 % Function to evaluate the results of tracking algorithms against a ground
 % truth.
 
@@ -32,6 +33,7 @@ fprintf('---------------------------------------------------------------\n');
 seqParamFile='sequence_param.txt';
 factRadDistOk=1;%valid distance between tracking data and truth as a factor of radius
 boolComputeParallel=1;
+flagTypeDefault=1;%'0' for black beads, '1' for transparent beads, '2' for both
 
 %set file of ground truth tracking data
 if nargin<1 || exist(trackTruthFullFile,'file')~=2
@@ -53,13 +55,18 @@ nbData=length(trackDataFullFiles);
 %set names of tracking data
 if nargin<3
     trackDataNames=inputdlg('Enter space-separated tracking data names',...
-        'Tracking data names',1,{'DET MMPF'});
+        'Tracking data names',1,{'DET PF'});
     trackDataNames=strsplit(trackDataNames{1});
 end
 if nbData~=length(trackDataNames)
     warning(['Execution stopped: Nb of tracking data and names must be ',...
         'the same.']);
     return;
+end
+
+%set type of beads to evaluate
+if nargin<4
+    flagType=flagTypeDefault;
 end
 
 %set file of sequence parameters
@@ -92,6 +99,14 @@ clear trackTruthTemp;
 trackData(1,1:nbData)=cellfun(@(x)load(x,'trackData'),...
     trackDataFullFiles(1:nbData),'uni',0);
 trackData(1,1:nbData)=cellfun(@(x)x(1).trackData,trackData(1:nbData),'uni',0);
+
+%keep only type(s) of beads needed for the evaluation
+if flagType~=2
+    for data=1:nbData
+        trackData{data}=cellfun(@(x)x(x(:,3)==flagType,:),...
+            trackData{data},'uni',0);
+    end
+end
 
 
 
@@ -445,12 +460,21 @@ legend(trackDataNames,'location','northwest');
 
 fprintf('Analysing MOTP and MOTA...\n');
 
-idSw0=cell2mat(cellfun(@(x)length(unique(x(~isnan(x(:,2)),2)))-1,...
-    distTr(catTr==0,:),'uni',0));
-idSw0=num2cell(sum(idSw0,1));
-idSw1=cell2mat(cellfun(@(x)length(unique(x(~isnan(x(:,2)),2)))-1,...
-    distTr(catTr==1,:),'uni',0));
-idSw1=num2cell(sum(idSw1,1));
+
+idSw0=cell(1,nbData);idSw0=cellfun(@(x)0,idSw0,'uni',0);
+idSw1=cell(1,nbData);idSw1=cellfun(@(x)0,idSw1,'uni',0);
+if flagType==0 || flagType==2
+    idSw0=cell2mat(cellfun(@(x)length(unique(x(~isnan(x(:,2)),2)))-1,...
+        distTr(catTr==0,:),'uni',0));
+    idSw0(idSw0<0)=0;
+    idSw0=num2cell(sum(idSw0,1));
+end
+if flagType==1 || flagType==2
+    idSw1=cell2mat(cellfun(@(x)length(unique(x(~isnan(x(:,2)),2)))-1,...
+        distTr(catTr==1,:),'uni',0));
+    idSw1(idSw1<0)=0;
+    idSw1=num2cell(sum(idSw1,1));
+end
 idSw=num2cell(cell2mat(idSw0)+cell2mat(idSw1));
 
 motp=zeros(nbData,3,4);%data(1,2,...), cat(0,1,all), ms(0,1,2,all)
@@ -479,7 +503,7 @@ bar(squeeze(motp(:,1,:))'*100,'grouped');
 title('MOTP for BLACK beads');
 set(gca,'xticklabel',{'Resting','Rolling','Saltating','All'});
 %xlabel('Ground Truth motion states');
-ylabel('Mean distance errors (%)');
+ylabel('MOTP (%)');
 legend(trackDataNames,'location','southwest');
 ylim([min(motp(:))*100-1,100]);
 
@@ -487,7 +511,7 @@ subplot(2,3,2);
 bar(squeeze(motp(:,2,:))'*100,'grouped');
 title('MOTP for TRANSPARENT beads');
 set(gca,'xticklabel',{'Resting','Rolling','Saltating','All'});
-ylabel('Mean distance errors (%)');
+ylabel('MOTP (%)');
 legend(trackDataNames,'location','southwest');
 ylim([min(motp(:))*100-1,100]);
 
@@ -495,7 +519,7 @@ subplot(2,3,3);
 bar(squeeze(motp(:,3,:))'*100,'grouped');
 title('MOTP for ALL beads');
 set(gca,'xticklabel',{'Resting','Rolling','Saltating','All'});
-ylabel('Mean distance errors (%)');
+ylabel('MOTP (%)');
 legend(trackDataNames,'location','southwest');
 ylim([min(motp(:))*100-1,100]);
 
@@ -523,14 +547,15 @@ save(fullfile(trackTruthPath,[outputFile,'.mat']),'trOk','fnrG','fprG',...
 % Main evaluation results
 %-------------------------------------------------------------------------------
 
-fprintf('Main evaluation results\n');
+beadsType={'black','transparent','both'};
+fprintf('Main evaluation results for %s type of beads\n',beadsType{flagType});
 table(trackDataNames',...
-    round(trOk(:,3)*10000)/10000,...
-    round(squeeze(motp(:,3,4))*10000)/10000,...
-    round(fnrG(:,3,5)*10000)/10000,...
-    round(fprG(:,3)*10000)/10000,...
+    round(trOk(:,flagType+1)*10000)/10000,...
+    round(squeeze(motp(:,flagType+1,4))*10000)/10000,...
+    round(fnrG(:,flagType+1,5)*10000)/10000,...
+    round(fprG(:,flagType+1)*10000)/10000,...
     cell2mat(idSw)',...
-    round(mota(:,3)*10000)/10000,...
+    round(mota(:,flagType+1)*10000)/10000,...
     'VariableNames',{'TrackData','TrackOk','MOTP','FN','FP','IdSw','MOTA'})
 
 end

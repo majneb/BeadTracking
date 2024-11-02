@@ -78,6 +78,8 @@ end
 if flagError, return; end
 dp.imSize=size(imread(imageFullFiles{1}));
 dp.nbImages=length(imageFullFiles);
+dp.mByPx=sp.mByPx;
+dp.acqFreq=sp.acqFreq
 dp.radBlackBeadPx=round(round(sp.diamBlackBead/sp.mByPx)/2);
 dp.radTransBeadPx=round(round(sp.diamTransBead/sp.mByPx)/2);
 dp.radTransBeadPxInside=round(round(sp.diamTransBead/sp.mByPx)*...

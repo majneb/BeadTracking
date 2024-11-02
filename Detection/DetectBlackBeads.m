@@ -22,9 +22,11 @@ function detectMat = DetectBlackBeads(image,threshBBeads,radBBeads)
 % source tree.
 
 maskBBeads=image<=threshBBeads;
+maskBBeads=imclose(maskBBeads,strel('disk',10));
+%maskBBeads=imerode(maskBBeads,strel('disk',ceil(2/3*radBBeads)));
 maskBBeads=imerode(maskBBeads,strel('disk',ceil(1/2*radBBeads),8));
 stats=regionprops(maskBBeads,'basic');
 detectMat=reshape([stats.Centroid],2,length(stats))';
-detectMat=single(detectMat([stats.Area]<=pi*(ceil(1/2*radBBeads)+1)^2,:));
+detectMat=single(detectMat([stats.Area]<=pi*(ceil(1/3*radBBeads)+1)^2,:));
 
 end
